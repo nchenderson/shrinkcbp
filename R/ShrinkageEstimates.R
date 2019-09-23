@@ -1,4 +1,5 @@
-ShrinkageEstimates <- function(Y, X, sd.resid, weights=c("compromise","compromise.ftau","mle","bpe"), vc.est=c("mle")) {
+ShrinkageEstimates <- function(Y, X, sd.resid, weights=c("compromise","compromise.ftau","mle","bpe"), 
+                               vc.est=c("mle", "reml","ure")) {
     ### Function to compute estimates of small area means using different weighting schemes
     ###
     ### Input:
