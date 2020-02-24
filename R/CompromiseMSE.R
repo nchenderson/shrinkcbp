@@ -29,23 +29,24 @@ ComprMSE <- function(par, Y, X, sig.sq) {
   #W <- alpha*W0 + (1 - alpha)*W1
   #XWX <- crossprod(X, W%*%X)
   #XtW <- crossprod(X, W)
-  #Bvec <- sig.sq/(sig.sq + tau.sq)
-  #B <- diag(Bvec)
+  Bvec <- sig.sq/(sig.sq + tau.sq)
+  B <- diag(Bvec)
 
   ww.compr <- alpha*ww0 + (1 - alpha)*ww1
   XWX <- crossprod(X, X*ww.compr)
   XtW <- t(X*ww.compr)
-  Bvec <- sig.sq/(sig.sq + tau.sq)
   PP <- X%*%solve(XWX, XtW)
   PPy <- PP%*%Y
   Uy <- Bvec*PPy - Bvec*Y
 
-  #UU <- B%*%X%*%solve(XWX, XtW) - B
-  #Uy <- UU%*%Y
+ 
+  #UU <- B%*%PP - B
+  #Uy <- drop(UU%*%Y)
   #VY <- diag(sig.sq) ## Var(Y|\theta)
   #TU <- (UU + t(UU) + diag(rep(1,K)))%*%VY
 
-  #MSE.hat <- sum(Uy*Uy) + sum(diag(TU))
+  #TU <- UU%*%diag(sig.sq)
+  #MSE.hat <- sum(Uy*Uy) + 2*sum(diag(TU))
   MSE.hat <- sum(Uy*Uy) + 2*sum(Bvec*sig.sq*diag(PP)) + sum(sig.sq) - 2*sum(Bvec*sig.sq)
 
   return(MSE.hat)
