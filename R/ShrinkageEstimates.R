@@ -1,4 +1,4 @@
-ShrinkageEstimates <- function(Y, X, sd.resid, weights=c("compromise","compromise.ftau", "compromise.ftau2", "mle","bpe"), 
+ShrinkageEstimates <- function(Y, X, sd.resid, weights=c("compromise","compromise.ftau", "compromise.ftau2", "compromise.difftau", "mle","bpe"), 
                                vc.est=c("mle", "reml","ure")) {
     ### Function to compute estimates of small area means using different weighting schemes
     ###
@@ -84,7 +84,30 @@ ShrinkageEstimates <- function(Y, X, sd.resid, weights=c("compromise","compromis
                         theta.hat <- Bvec*PPy + (1 - Bvec)*Y
                        
                         ests <- list(shrinkage.estimate=theta.hat, weights=ww.compromise, alpha=alpha.opt, tau.sq=tausq.opt)
-                },  mle = {
+                   }, compromise.difftau = {
+                        tausq.reml <- optimize(Q_REML, interval=c(0,4*VY), Y=Y, X=X, sig.sq=sis)$minimum
+                        tausq.bpe <- optimize(Q_BPE, interval=c(0,4*VY), Y=Y, X=X, sig.sq=sis)$minimum
+                        compromise_pars <- optim(par=c(1/2, tausq.bpe, tausq.reml), fn=ComprDiffMSE, lower=c(0,0), upper=c(1, 4*VY), Y=Y, X=X, sig.sq=sis, method="L-BFGS-B")$par
+                        alpha.opt <- compromise_pars[1]
+                        tausq.opt0 <- compromise_pars[2]
+                        tausq.opt1 <- compromise_pars[3]
+                        #tausq.shrink <- compromise_pars[4]
+                        tausq.shrink <- alpha.opt*tausq.opt1 + (1 - alpha.opt)*tausq.opt0
+                        
+                        
+                        ww.mle <- MLEWeights(K, tau.sq=tausq.opt1, sigma.sq=sis)
+                        ww.bpe <- BPEWeights(K, tau.sq=tausq.opt0, sigma.sq=sis)
+                        ww.compromise <- alpha.opt*ww.mle + (1 - alpha.opt)*ww.bpe
+
+                        XWX <- crossprod(X, X*ww.compromise)
+                        XtWy <- crossprod(X, ww.compromise*Y)
+                        Bvec <- sis/(sis + tausq.shrink)
+                       
+                        PPy <- X%*%solve(XWX, XtWy)
+                        theta.hat <- Bvec*PPy + (1 - Bvec)*Y
+                        ests <- list(shrinkage.estimate=theta.hat, weights=ww.compromise, alpha=alpha.opt, tau.sq0=tausq.opt0, 
+                                     tau.sq1=tausq.opt1, tau.sq.shrink=tausq.shrink)
+                  }, mle = {
                        if(vc.est=="mle") {
                            mle.tausq <- optimize(Q_MLE, interval=c(0,4*VY), Y=Y, X=X, sig.sq=sis)$minimum
                        } else if(vc.est=="reml") {
