@@ -1,5 +1,5 @@
 
-GenSimDatISS <- function(X, bbeta, tau.sq, rho, sd.eta = 1, u.min=1, u.max=5, re.dist="normal", ncase="exp.unif", sig.sq=1) {
+GenSimDatISS <- function(X, bbeta, tau.sq, rho, n.seq, sd.eta = 1, re.dist="normal", sig.sq=1) {
     ### Function to generate data Y under the informative sample size simulation setting
     ### Function to generate data Y and nn under the geometric series pattern for n...
 
@@ -7,17 +7,17 @@ GenSimDatISS <- function(X, bbeta, tau.sq, rho, sd.eta = 1, u.min=1, u.max=5, re
 
     K <- nrow(X)
     #nn <- runif(K, min=u.min, max=u.max)
-    if(ncase=="exp.unif") {
+    #if(ncase=="exp.unif") {
         #nn <- rgamma(K, shape=1,rate=1/2)
-        nn <- exp(runif(K, min=u.min, max=u.max))
-        #nn <- rgamma(K, shape=1, rate=.25)
-        sigma.nn <- sd(nn)  ## change this later
-    }
-    else {
-        nn <- sample(c(u.min, u.max), size=K, replace=TRUE, prob=c(.5, .5))
-        sigma.nn <- (u.max - u.min)/2
-        #print(c(sigma.nn, sigma.tmp))
-    }
+    #    nn <- exp(runif(K, min=u.min, max=u.max))
+    #    sigma.nn <- sd(nn)  ## change this later
+    #}
+    #else {
+    #    nn <- sample(c(u.min, u.max), size=K, replace=TRUE, prob=c(.5, .5))
+    #    sigma.nn <- (u.max - u.min)/2
+    #}
+    nn <- n.seq
+    sigma.nn <- sd(nn)
     bb <- (rho*sqrt(tau.sq))/sigma.nn
     aa <- sqrt(tau.sq)*sqrt(1 - rho*rho)
     lin.pred <- X%*%bbeta
@@ -43,7 +43,7 @@ GenSimDatISS <- function(X, bbeta, tau.sq, rho, sd.eta = 1, u.min=1, u.max=5, re
          Y <- rnorm(K, mean=theta.vec, sd=sqrt(sig.sq/nn))
     }
     rho.hat <- cor(theta.vec, nn)
-    #print(c(rho.hat, rho))
+    
     ans <- list()
     ans$n <- nn
     ans$Y <- Y
