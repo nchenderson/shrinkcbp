@@ -28,8 +28,8 @@ GenSimDatISS <- function(X, bbeta, tau.sq, rho, n.seq, sd.eta = 1, re.dist="norm
     } else if(re.dist=="normal.mix") {
          zz <- sample(0:1, size=K, replace=TRUE)
          eta <- rep(0.0, K)
-         eta[zz==0] <- rnorm(sum(zz==0), mean=-4/sqrt(2), sd=1/sqrt(2))
-         eta[zz==1] <- rnorm(sum(zz==1), mean=4/sqrt(2), sd=1/sqrt(2))
+         eta[zz==0] <- rnorm(sum(zz==0), mean=-1/sqrt(2), sd=1/sqrt(2))
+         eta[zz==1] <- rnorm(sum(zz==1), mean=1/sqrt(2), sd=1/sqrt(2))
          eta <- eta*sd.eta
          theta.vec <- lin.pred + aa*eta + bb*nn
          Y <- rnorm(K, mean=theta.vec, sd=sqrt(sig.sq/nn))
