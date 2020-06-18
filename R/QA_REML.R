@@ -29,7 +29,7 @@ Q_REML <- function(A, Y, X, sig.sq) {
    Py <- Y - X%*%solve(XtDX, XtDy)
 
    t1 <- sum(log(mvar))
-   t2 <- determinant(XtDX, log=TRUE)$modulus
+   t2 <- determinant(XtDX, logarithm=TRUE)$modulus
    t3 <- sum(Y*inv_mvar*Py)
    ans <- t1 + t2 + t3
    return(ans)
