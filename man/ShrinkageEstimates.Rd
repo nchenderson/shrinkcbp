@@ -1,36 +1,37 @@
 \name{ShrinkageEstimates}
 \alias{ShrinkageEstimates}
-%- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-Shrinkage Estimation
+Shrinkage Estimation of Small Domain Parameters
 }
 \description{
-Computes shrinkage estimates for different weighting schemes
+Computes shrinkage estimates for small domain parameters using different choices for the regression weights.
 }
 \usage{
-ShrinkageEstimates(Y, X, sd.resid, weights = c("compromise", "mle", "bpe"))
+ShrinkageEstimates(Y, X, sd.resid, weights=c("cure", "cure.plugin", 
+                  "cure.multitau", "mle","bpe"), vc.est=c("mle", "reml","ure"))
 }
-%- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{Y}{
-the vector of responses
+The K x 1 vector of responses.
 }
   \item{X}{
-the design matrix
+The K x p design matrix.
 }
   \item{sd.resid}{
-the sampling standard deviations
+The K x 1 vector sampling standard deviations.
 }
   \item{weights}{
-the method by which to choose weights
+The method by which to choose regression weights. 
+}
+  \item{vc.est}{
+When the mle method is used for regression weights, this determines which method is used to estimate the variance component. This can be either maximum likelihood estimation, restricted maximum likelihood estimation, or minimization of an unbiased risk estimate.
 }
 }
 \details{
 %%  ~~ If necessary, more details than the description above ~~
 }
 \value{
-%%  ~Describe the value returned
-%%  If it is a LIST, use
+A list with the following components
 %%  \item{comp1 }{Description of 'comp1'}
 %%  \item{comp2 }{Description of 'comp2'}
 %% ...
@@ -62,19 +63,15 @@ Y <- X\%*\%beta.coef + ran.ef + sqrt(sig.sq)*rnorm(K)
 sd.resid <- sqrt(sig.sq)
 
 
-a <- ShrinkageEstimates(Y, X, sd.resid)
-b <- ShrinkageEstimates(Y, X, sd.resid, weights="mle")
-d <- ShrinkageEstimates(Y, X, sd.resid, weights="bpe")
+cbp.est <- ShrinkageEstimates(Y, X, sd.resid, weights="cure")
+eblup.est <- ShrinkageEstimates(Y, X, sd.resid, weights="mle")
+obp.est <- ShrinkageEstimates(Y, X, sd.resid, weights="bpe")
 
-plot(a$shrinkage.estimate, b$shrinkage.estimate)
+par(mfrow=c(1,2))
+plot(cbp.est$shrinkage.estimate, eblup.est$shrinkage.estimate)
+plot(cbp.est$shrinkage.estimate, obp.est$shrinkage.estimate)
 abline(0, 1)
 
-
-
-
-
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{ ~kwd1 }% use one of  RShowDoc("KEYWORDS")
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+\keyword{ regression }% use one of  RShowDoc("KEYWORDS")
+\keyword{ robust }% __ONLY ONE__ keyword per line
