@@ -1,11 +1,10 @@
 Package: shrinkcbp
 Type: Package
-Title: What the Package Does (Title Case)
-Version: 0.1.1
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Title: CBP Shrinkage Estimates of Small Domain Parameters
+Version: 0.2
+Author: Nicholas Henderson
+Maintainer: Nicholas Henderson <nchender@umich.edu>
+Description: Computes robust shrinkage estimates of small domain parameters using compromise regression weights.
 License: GPL-2
 Encoding: UTF-8
 LazyData: true
