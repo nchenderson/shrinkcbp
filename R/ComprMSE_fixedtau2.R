@@ -15,8 +15,8 @@ ComprMSE_fixedtau2 <- function(par, Y, X, sig.sq, tau.sq0, tau.sq1) {
   alpha <- par[1]
 
   ## Define W0 and W1
-  ww0 <- 1/(sig.sq + tau.sq0)
-  ww1 <- (sig.sq/(sig.sq + tau.sq1))^2
+  ww0 <- (sig.sq/(sig.sq + tau.sq1))^2
+  ww1 <- 1/(sig.sq + tau.sq0)
   ww0 <- ww0/sum(ww0)
   ww1 <- ww1/sum(ww1)
   
@@ -24,10 +24,11 @@ ComprMSE_fixedtau2 <- function(par, Y, X, sig.sq, tau.sq0, tau.sq1) {
   W1 <- diag(ww1)
   
   K <- nrow(X)
-  W <- alpha*W0 + (1 - alpha)*W1
+  W <- alpha*W1 + (1 - alpha)*W0
+  
   XWX <- crossprod(X, W%*%X)
   XtW <- crossprod(X, W)
-  tau.sq.comp <- alpha*tau.sq0 + (1 - alpha)*tau.sq1
+  tau.sq.comp <- alpha*tau.sq1 + (1 - alpha)*tau.sq0
   Bvec <- sig.sq/(sig.sq + tau.sq.comp)
   B <- diag(Bvec)
   
