@@ -1,1 +1,3 @@
 exportPattern("^[[:alpha:]]+")
+importFrom("stats", "cor", "optim", "optimize", "pnorm", "rnorm", "rt",
+             "runif", "sd", "uniroot", "var")
