@@ -20,36 +20,31 @@ ShrinkageEstimates <- function(Y, X, sd.resid, weights=c("cure", "cure.plugin", 
 
     ests <- switch(weights,
                   cure = {
-                       compromise_pars <- optim(par=c(1/2, VY/4), fn=ComprMSE, lower=c(0,0), upper=c(1, 4*VY), Y=Y, X=X, sig.sq=sis, method="L-BFGS-B")$par
+                       compromise_pars <- optim(par=c(1/2, VY/4), fn=ComprMSE, lower=c(0,0), upper=c(1, 10*VY), 
+                                                Y=Y, X=X, sig.sq=sis, method="L-BFGS-B")$par
                        alpha.opt <- compromise_pars[1]
                        tausq.opt <- compromise_pars[2]
 
                        ww.mle <- MLEWeights(K, tau.sq=tausq.opt, sigma.sq=sis)
                        ww.bpe <- BPEWeights(K, tau.sq=tausq.opt, sigma.sq=sis)
                        ww.compromise <- alpha.opt*ww.mle + (1 - alpha.opt)*ww.bpe
-                     #  W <- diag(ww.compromise)
 
                        XWX <- crossprod(X, X*ww.compromise)
                        XtWy <- crossprod(X, ww.compromise*Y)
                        Bvec <- sis/(sis + tausq.opt)
 
-                      # XWX <- crossprod(X, W%*%X)
-                      # XtW <- crossprod(X, W)
-                      # Bvec <- sis/(sis + tausq.opt)
-                      # B <- diag(Bvec)
-
-                       #Amat <- B%*%X%*%solve(XWX, XtW) + diag(rep(1,K)) - B
-                       #theta.hat <- Amat%*%Y
                        PPy <- X%*%solve(XWX, XtWy)
                        theta.hat <- Bvec*PPy + (1 - Bvec)*Y
                        beta.hat <- solve(XWX, XtWy)
-                       ests <- list(shrinkage.estimate=theta.hat, weights=ww.compromise, alpha=alpha.opt, tau.sq=tausq.opt, beta.hat=beta.hat)
-                   }, cure.plugin = {
-                        tausq.reml <- optimize(Q_REML, interval=c(0,4*VY), Y=Y, X=X, sig.sq=sis)$minimum
-                        tausq.bpe <- optimize(Q_BPE, interval=c(0,4*VY), Y=Y, X=X, sig.sq=sis)$minimum
+                       ests <- list(shrinkage.estimate=theta.hat, weights=ww.compromise, alpha=alpha.opt, 
+                                    tau.sq=tausq.opt, beta.hat=beta.hat)
+                    }, cure.plugin = {
+                        tausq.reml <- optimize(Q_REML, interval=c(0,10*VY), Y=Y, X=X, sig.sq=sis)$minimum
+                        tausq.bpe <- optimize(Q_BPE, interval=c(0,10*VY), Y=Y, X=X, sig.sq=sis)$minimum
                        
                         compromise_pars <- optimize(f=ComprMSE_fixedtau2, interval=c(0,1), Y=Y, X=X, tau.sq0=tausq.bpe,
                                                     tau.sq1=tausq.reml, sig.sq=sis)
+
                         alpha.opt <- compromise_pars$minimum
                         tausq.opt <- alpha.opt*tausq.reml + (1 - alpha.opt)*tausq.bpe
                        
@@ -64,17 +59,17 @@ ShrinkageEstimates <- function(Y, X, sd.resid, weights=c("cure", "cure.plugin", 
                         theta.hat <- Bvec*PPy + (1 - Bvec)*Y
                         beta.hat <- solve(XWX, XtWy)
                        
-                        ests <- list(shrinkage.estimate=theta.hat, weights=ww.compromise, alpha=alpha.opt, tau.sq=tausq.opt, beta.hat=beta.hat)
-                   }, cure.multitau = {
-                        tausq.reml <- optimize(Q_REML, interval=c(0,4*VY), Y=Y, X=X, sig.sq=sis)$minimum
-                        tausq.bpe <- optimize(Q_BPE, interval=c(0,4*VY), Y=Y, X=X, sig.sq=sis)$minimum
-                        compromise_pars <- optim(par=c(1/2, tausq.bpe, tausq.reml), fn=ComprDiffMSE, lower=c(0,0), upper=c(1, 4*VY), Y=Y, X=X, sig.sq=sis, method="L-BFGS-B")$par
+                        ests <- list(shrinkage.estimate=theta.hat, weights=ww.compromise, alpha=alpha.opt, 
+                                     tau.sq=tausq.opt, beta.hat=beta.hat)
+                     }, cure.multitau = {
+                        tausq.reml <- optimize(Q_REML, interval=c(0,10*VY), Y=Y, X=X, sig.sq=sis)$minimum
+                        tausq.bpe <- optimize(Q_BPE, interval=c(0,10*VY), Y=Y, X=X, sig.sq=sis)$minimum
+                        compromise_pars <- optim(par=c(1/2, tausq.bpe, tausq.reml), fn=ComprDiffMSE, lower=c(0,0), 
+                                                 upper=c(1, 10*VY), Y=Y, X=X, sig.sq=sis, method="L-BFGS-B")$par
                         alpha.opt <- compromise_pars[1]
                         tausq.opt0 <- compromise_pars[2]
                         tausq.opt1 <- compromise_pars[3]
-                        #tausq.shrink <- compromise_pars[4]
                         tausq.shrink <- alpha.opt*tausq.opt1 + (1 - alpha.opt)*tausq.opt0
-                        
                         
                         ww.mle <- MLEWeights(K, tau.sq=tausq.opt1, sigma.sq=sis)
                         ww.bpe <- BPEWeights(K, tau.sq=tausq.opt0, sigma.sq=sis)
@@ -88,6 +83,7 @@ ShrinkageEstimates <- function(Y, X, sd.resid, weights=c("cure", "cure.plugin", 
                         theta.hat <- Bvec*PPy + (1 - Bvec)*Y
                         ests <- list(shrinkage.estimate=theta.hat, weights=ww.compromise, alpha=alpha.opt, tau.sq0=tausq.opt0, 
                                      tau.sq1=tausq.opt1, tau.sq.shrink=tausq.shrink)
+                        
                   }, mle = {
                        if(vc.est=="mle") {
                            mle.tausq <- optimize(Q_MLE, interval=c(0,4*VY), Y=Y, X=X, sig.sq=sis)$minimum
@@ -101,22 +97,17 @@ ShrinkageEstimates <- function(Y, X, sd.resid, weights=c("cure", "cure.plugin", 
                        }
                        ## else if (vc.est=="sure")
                        ww.mle <- MLEWeights(K, tau.sq=mle.tausq, sigma.sq=sis)
-                       #W <- diag(ww.mle)
-
-                      # XWX <- crossprod(X, W%*%X)
-                      # XtW <- crossprod(X, W)
+                     
                        XWX <- crossprod(X, X*ww.mle)
                        XtWy <- crossprod(X, ww.mle*Y)
                        Bvec <- sis/(sis + mle.tausq)
-                      # B <- diag(Bvec)
 
                        PPy <- X%*%solve(XWX, XtWy)
                        beta.hat <- solve(XWX, XtWy)
                        
-                       #Amat <- B%*%X%*%solve(XWX, XtW) + diag(rep(1,K)) - B
-                       #theta.hat <- Amat%*%Y
                        theta.hat <- Bvec*PPy + (1 - Bvec)*Y
-                       ests <- list(shrinkage.estimate=theta.hat, weights=ww.mle, alpha=0, tau.sq=mle.tausq, beta.hat=beta.hat)
+                       ests <- list(shrinkage.estimate=theta.hat, weights=ww.mle, alpha=0, tau.sq=mle.tausq, 
+                                    beta.hat=beta.hat)
                   }, bpe = {
                        bpe.tausq <- optimize(Q_BPE, interval=c(0,4*VY), Y=Y, X=X, sig.sq=sis)$minimum
                        ww.bpe <- BPEWeights(K, tau.sq=bpe.tausq, sigma.sq=sis)
@@ -125,18 +116,12 @@ ShrinkageEstimates <- function(Y, X, sd.resid, weights=c("cure", "cure.plugin", 
                        XtWy <- crossprod(X, ww.bpe*Y)
                        Bvec <- sis/(sis + bpe.tausq)
 
-                       #XWX <- crossprod(X, W%*%X)
-                       #XtW <- crossprod(X, W)
-                       #Bvec <- sis/(sis + bpe.tausq)
-                       #B <- diag(Bvec)
-
                        PPy <- X%*%solve(XWX, XtWy)
                        beta.hat <- solve(XWX, XtWy)
                        
-                       #Amat <- B%*%X%*%solve(XWX, XtW) + diag(rep(1,K)) - B
-                       #theta.hat <- Amat%*%Y
                        theta.hat <- Bvec*PPy + (1 - Bvec)*Y
-                       ests <- list(shrinkage.estimate=theta.hat, weights=ww.bpe, alpha=1, tau.sq=bpe.tausq, beta.hat=beta.hat)
+                       ests <- list(shrinkage.estimate=theta.hat, weights=ww.bpe, alpha=1, 
+                                    tau.sq=bpe.tausq, beta.hat=beta.hat)
                   })
     return(ests)
 }
